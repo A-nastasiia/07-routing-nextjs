@@ -1,51 +1,61 @@
-import Link from "next/link"; 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Note } from "../../types/note";
-import { deleteNote } from "../../lib/api";
-import css from "./NoteList.module.css";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { Note } from '../../types/note';
+import css from './NoteList.module.css';
+import { deleteNote } from '../../lib/api';
+import ErrorMessage from '../ErrorMessage/ErrorMessage';
+import { useState } from 'react';
+import Link from 'next/link';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface NoteListProps {
   notes: Note[];
 }
 
 export default function NoteList({ notes }: NoteListProps) {
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteNote,
+  const { mutate, isError } = useMutation({
+    mutationFn: async (id: number) => deleteNote(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      toast.success('Note deleted.');
+      setDeletingId(null);
     },
-    onError: (error: unknown) => {
-      console.error("Delete failed:", error);
-      alert("Failed to delete note. Please try again.");
+    onError: () => {
+      setDeletingId(null);
     },
   });
-
+  const handleButton = (id: number) => {
+    setDeletingId(id);
+    mutate(id);
+  };
   return (
-    <ul className={css.list}>
-      {notes.map((note) => (
-        <li key={note.id} className={css.listItem}>
-          <h2 className={css.title}>{note.title}</h2>
-          <p className={css.content}>{note.content}</p>
-          <div className={css.footer}>
-            <span className={css.tag}>{note.tag ?? ""}</span>
-
-            <Link href={`/notes/${note.id}`} className={css.viewDetails}>
-              View details
-            </Link>
-
-            <button
-              className={css.button}
-              onClick={() => deleteMutation.mutate(note.id)}
-              disabled={deleteMutation.isPending}
-              aria-label={`Delete note titled ${note.title}`}
-            >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
-            </button>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <section>
+      {isError && (
+        <ErrorMessage text="There was an error, please try again..." />
+      )}
+      <Toaster />
+      <ul className={css.list}>
+        {notes.map(({ id, title, content, tag }) => (
+          <li className={css.listItem} key={id}>
+            <h2 className={css.title}>{title}</h2>
+            <p className={css.content}>{content}</p>
+            <div className={css.footer}>
+              <span className={css.tag}>{tag}</span>
+              <Link href={`/notes/${id}`} className={css.link}>
+                View details
+              </Link>
+              <button
+                className={css.button}
+                onClick={() => handleButton(id)}
+                disabled={deletingId === id}
+              >
+                {deletingId === id ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

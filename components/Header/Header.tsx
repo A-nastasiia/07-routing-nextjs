@@ -1,12 +1,11 @@
-"use client";
+import Link from 'next/link';
+import css from './Header.module.css';
+import TagsMenu from '../TagsMenu/TagsMenu';
 
-import Link from "next/link";
-import css from "./Header.module.css";
-
-export default function Header() {
+const Header = () => {
   return (
     <header className={css.header}>
-      <Link href="/" aria-label="Home" className={css.logo}>
+      <Link href="/" aria-label="Home">
         NoteHub
       </Link>
       <nav aria-label="Main Navigation">
@@ -15,10 +14,14 @@ export default function Header() {
             <Link href="/">Home</Link>
           </li>
           <li>
-            <Link href="/notes">Notes</Link>
+            <TagsMenu
+              tags={['Work', 'Personal', 'Meeting', 'Shopping', 'Todo']}
+            />
           </li>
         </ul>
       </nav>
     </header>
   );
-}
+};
+
+export default Header;
