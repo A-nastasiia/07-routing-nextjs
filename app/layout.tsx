@@ -7,7 +7,7 @@ import React from 'react';
 
 export const metadata: Metadata = {
   title: 'NoteHub',
-  description: 'Created by OPalilov',
+  description: 'Created by Nikolaienko Anastasiia,
 };
 
 export default function RootLayout({
